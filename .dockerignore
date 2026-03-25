@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv/
+.env
+.git
+.gitignore
+Dockerfile
+README.md
+test_endpoints.sh
