@@ -53,3 +53,8 @@ db.sqlite3-journal
 
 # macOS
 .DS_Store
+
+# Local Test Scripts
+gen_test_commands.py
+sign_webhook.py
+e2e_test.py
