@@ -26,9 +26,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-zyx)3ubk5-euhk-aa_t@5bm+ky4)vj-9kn)ejm1$^4s$c+*8e!'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = []
+HOST = os.getenv('HOST')
+ALLOWED_HOSTS = [HOST] if HOST else ['*']
 
 
 # Application definition
@@ -40,6 +41,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Third-party
+    'rest_framework',
+
+    # Local apps
+    'billing',
 ]
 
 MIDDLEWARE = [
@@ -78,11 +85,17 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DATABASES_NAME', 'change-me-in-production'),
+        'USER': os.getenv('DATABASES_USER', 'change-me-in-production'),
+        'PASSWORD': os.getenv('DATABASES_PASSWORD', 'change-me-in-production'),
+        'HOST': os.getenv('DATABASES_HOST', 'change-me-in-production'),
+        'PORT': os.getenv('DATABASES_PORT', 'change-me-in-production'),
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -124,3 +137,31 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# =============================================================================
+# Django REST Framework Configuration
+# =============================================================================
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    # Không set DEFAULT_AUTHENTICATION_CLASSES global
+    # Mỗi view tự chỉ định authentication_classes phù hợp
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+}
+
+
+# =============================================================================
+# Billing & Payment - Custom Settings
+# =============================================================================
+# Secret key để verify Internal JWT từ Gateway (NestJS)
+INTERNAL_JWT_SECRET = os.getenv('INTERNAL_JWT_SECRET', 'change-me-in-production')
+
+# Checksum key của PayOS để verify webhook signature
+PAYOS_CHECKSUM_KEY = os.getenv('PAYOS_CHECKSUM_KEY', 'change-me-in-production')
+
+# API key cho internal service-to-service communication
+INTERNAL_SERVICE_KEY = os.getenv('INTERNAL_SERVICE_KEY', 'change-me-in-production')
