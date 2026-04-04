@@ -86,17 +86,16 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres.cjsowmznqitorzxxjgzr',
-        'PASSWORD': 'Orbitaisystem_8899',
-        'HOST': 'aws-1-ap-northeast-1.pooler.supabase.com',
-        'PORT': '5432',
+        'NAME': os.getenv('DATABASES_NAME', 'change-me-in-production'),
+        'USER': os.getenv('DATABASES_USER', 'change-me-in-production'),
+        'PASSWORD': os.getenv('DATABASES_PASSWORD', 'change-me-in-production'),
+        'HOST': os.getenv('DATABASES_HOST', 'change-me-in-production'),
+        'PORT': os.getenv('DATABASES_PORT', 'change-me-in-production'),
         'OPTIONS': {
             'sslmode': 'require',
         },
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

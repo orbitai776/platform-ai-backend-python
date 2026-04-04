@@ -59,6 +59,20 @@ jobs:
         #  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
         #  FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
         #  FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+
+          DEBUG: ${{ vars.DEBUG }}
+          SERVICE_PORT: ${{ vars.SERVICE_PORT }}
+          
+          # Billing & Payment - Authentication Keys
+          INTERNAL_JWT_SECRET: ${{ secrets.INTERNAL_JWT_SECRET }}
+          PAYOS_CHECKSUM_KEY: ${{ secrets.PAYOS_CHECKSUM_KEY }}
+          INTERNAL_SERVICE_KEY: ${{ secrets.INTERNAL_SERVICE_KEY }}
+
+          DATABASES_NAME: ${{ secrets.DATABASES_NAME }}
+          DATABASES_USER: ${{ secrets.DATABASES_USER }}
+          DATABASES_PASSWORD: ${{ secrets.DATABASES_PASSWORD }}
+          DATABASES_HOST: ${{ secrets.DATABASES_HOST }}
+          DATABASES_PORT: ${{ secrets.DATABASES_PORT }}
         run: |
           # Deploy commands
           ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << EOF
