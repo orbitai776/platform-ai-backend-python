@@ -12,6 +12,7 @@ import hashlib
 import hmac
 import json
 import logging
+import uuid
 
 import jwt
 from django.conf import settings
@@ -93,10 +94,13 @@ class PartnerJWTAuthentication(authentication.BaseAuthentication):
 
         try:
             # Decode và verify JWT bằng secret key nội bộ
+            # options={'verify_aud': False}: bỏ check audience vì jwt internal
+            # không set claim 'aud', mặc định PyJWT sẽ báo lỗi nếu không tắt.
             payload = jwt.decode(
                 token,
                 settings.INTERNAL_JWT_SECRET,
                 algorithms=['HS256'],
+                options={'verify_aud': False},
             )
         except jwt.ExpiredSignatureError:
             raise exceptions.AuthenticationFailed('Token đã hết hạn.')
@@ -113,6 +117,16 @@ class PartnerJWTAuthentication(authentication.BaseAuthentication):
         if not partner_id:
             raise exceptions.AuthenticationFailed(
                 'Token thiếu trường uid (partner_id).'
+            )
+
+        # Validate partner_id phải là UUID hợp lệ.
+        # JWT của user thường (Firebase UID dạng string) sẽ bị chặn tại đây
+        # thay vì gây exception ở tầng DB query.
+        try:
+            uuid.UUID(str(partner_id))
+        except (ValueError, AttributeError):
+            raise exceptions.AuthenticationFailed(
+                'Token không hợp lệ: uid không phải UUID của partner.'
             )
 
         user = AuthenticatedPartner(partner_id=partner_id, role=role)
