@@ -97,6 +97,7 @@ class PartnerJWTAuthentication(authentication.BaseAuthentication):
                 token,
                 settings.INTERNAL_JWT_SECRET,
                 algorithms=['HS256'],
+                options={'verify_aud': False},
             )
         except jwt.ExpiredSignatureError:
             raise exceptions.AuthenticationFailed('Token đã hết hạn.')
