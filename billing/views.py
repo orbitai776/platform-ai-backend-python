@@ -3,12 +3,12 @@ Billing Views
 =============
 6 API endpoints cho hệ thống billing:
 
-1. PaymentCreateView  — POST /v1/partner/billing/payments      (Partner Auth)
-2. PaymentListView    — GET  /v1/partner/billing/payments      (Partner Auth)
-3. PaymentWebhookView — POST /v1/webhooks/payments/callback    (Webhook Auth)
-4. BalanceView        — GET  /v1/partner/billing/balance       (Partner Auth)
-5. TokenUsageListView — GET  /v1/partner/billing/token-usage   (Partner Auth)
-6. TokenDeductView    — POST /internal/v1/billing/tokens/deduct (Internal Auth)
+1. PaymentCreateView  — POST /v1/api/partner/billing/payments      (Partner Auth)
+2. PaymentListView    — GET  /v1/api/partner/billing/payments      (Partner Auth)
+3. PaymentWebhookView — POST /v1/api/webhooks/payments/callback    (Webhook Auth)
+4. BalanceView        — GET  /v1/api/partner/billing/balance       (Partner Auth)
+5. TokenUsageListView — GET  /v1/api/partner/billing/token-usage   (Partner Auth)
+6. TokenDeductView    — POST /internal/v1/api/billing/tokens/deduct (Internal Auth)
 """
 
 import uuid
@@ -44,7 +44,6 @@ TOKEN_RATE_PER_VND = Decimal('0.1')  # 100 tokens / 1000 VND = 0.1 token/VND
 
 
 class BillingPagination(PageNumberPagination):
-    """Pagination mặc định cho các list endpoint."""
     page_size = 20
     page_size_query_param = 'page_size'
     max_page_size = 100
@@ -52,7 +51,7 @@ class BillingPagination(PageNumberPagination):
 
 # =============================================================================
 # Endpoint 1: Tạo yêu cầu nạp tiền (Topup Intent)
-# POST /v1/partner/billing/payments
+# POST /v1/api/partner/billing/payments
 # =============================================================================
 class PaymentCreateView(APIView):
     """
@@ -116,7 +115,7 @@ class PaymentCreateView(APIView):
 
 # =============================================================================
 # Endpoint 2: Lấy lịch sử nạp tiền
-# GET /v1/partner/billing/payments
+# GET /v1/api/partner/billing/payments/list
 # =============================================================================
 class PaymentListView(APIView):
     """
@@ -145,7 +144,7 @@ class PaymentListView(APIView):
 
 # =============================================================================
 # Endpoint 3: Webhook nhận kết quả thanh toán
-# POST /v1/webhooks/payments/callback
+# POST /v1/api/webhooks/payments/callback
 # =============================================================================
 class PaymentWebhookView(APIView):
     """
@@ -231,7 +230,7 @@ class PaymentWebhookView(APIView):
 
 # =============================================================================
 # Endpoint 4: Lấy số dư Token
-# GET /v1/partner/billing/balance
+# GET /v1/api/partner/billing/balance
 # =============================================================================
 class BalanceView(APIView):
     """
@@ -243,26 +242,16 @@ class BalanceView(APIView):
 
     def get(self, request):
         partner_id = request.user.partner_id
-
-        try:
-            wallet = Wallet.objects.get(partner_id=partner_id)
-            data = WalletSerializer(wallet).data
-        except Wallet.DoesNotExist:
-            # Partner chưa có wallet → trả về giá trị mặc định
-            data = {
-                'id': None,
-                'partner_id': str(partner_id),
-                'available_tokens': 0,
-                'total_used': 0,
-                'updated_at': None,
-            }
+        wallet, created = Wallet.objects.get_or_create(partner_id=partner_id)
+        
+        data = WalletSerializer(wallet).data
 
         return Response(data, status=status.HTTP_200_OK)
 
 
 # =============================================================================
 # Endpoint 5: Lấy lịch sử trừ Token
-# GET /v1/partner/billing/token-usage
+# GET /v1/api/partner/billing/token-usage
 # =============================================================================
 class TokenUsageListView(APIView):
     """
@@ -286,7 +275,7 @@ class TokenUsageListView(APIView):
 
 # =============================================================================
 # Endpoint 6: Trừ Token (Internal API)
-# POST /internal/v1/billing/tokens/deduct
+# POST /internal/v1/api/billing/tokens/deduct
 # =============================================================================
 class TokenDeductView(APIView):
     """
