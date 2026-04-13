@@ -102,6 +102,7 @@ jobs:
               -e DATABASES_PASSWORD=$DATABASES_PASSWORD \
               -e DATABASES_HOST=$DATABASES_HOST \
               -e DATABASES_PORT=$DATABASES_PORT \
+              -e USE_POSTGRESQL=true \
               --log-opt max-size=10m \
               --log-opt max-file=3 \
               ghcr.io/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
