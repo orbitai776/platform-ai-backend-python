@@ -101,6 +101,25 @@ class PaymentCreateView(APIView):
             f"Amount: {amount} VND → {token_amount} tokens"
         )
 
+        with transaction.atomic():
+            # Tìm hoặc tạo wallet cho partner
+            wallet, created = Wallet.objects.select_for_update().get_or_create(
+                partner_id=payment.partner_id,
+                defaults={'available_tokens': 0, 'total_used': 0},
+            )
+
+            # Cộng token vào ví
+            wallet.available_tokens += payment.token_amount
+            wallet.save(update_fields=['available_tokens', 'updated_at'])
+        
+
+        logger.info(
+            f"Webhook success: TXN=hardcode | "
+            f"Partner={payment.partner_id} | "
+            f"+{payment.token_amount} tokens | "
+            f"Balance={wallet.available_tokens}"
+        )
+
         return Response(
             {
                 'payment_url': payment_url,
