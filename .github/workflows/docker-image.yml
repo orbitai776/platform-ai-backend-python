@@ -53,12 +53,28 @@ jobs:
           BRANCH_NAME: ${{ github.ref_name }}
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
           REGISTRY: ${{ env.REGISTRY }}
-          ENV: ${{ github.ref_name }}
+          ENV: ${{ vars.ENV }}
           PORT: ${{ vars.PORT }}
           CONTAINER: ${{ vars.CONTAINER }}
         #  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
         #  FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
         #  FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+
+          DEBUG: ${{ vars.DEBUG }}
+          SERVICE_PORT: ${{ vars.SERVICE_PORT }}
+          
+          # Billing & Payment - Authentication Keys
+          INTERNAL_JWT_SECRET: ${{ secrets.INTERNAL_JWT_SECRET }}
+          PAYOS_CHECKSUM_KEY: ${{ secrets.PAYOS_CHECKSUM_KEY }}
+          INTERNAL_SERVICE_KEY: ${{ secrets.INTERNAL_SERVICE_KEY }}
+
+          DATABASES_NAME: ${{ secrets.DATABASES_NAME }}
+          DATABASES_USER: ${{ secrets.DATABASES_USER }}
+          DATABASES_PASSWORD: ${{ secrets.DATABASES_PASSWORD }}
+          DATABASES_HOST: ${{ secrets.DATABASES_HOST }}
+          DATABASES_PORT: ${{ secrets.DATABASES_PORT }}
+          USE_POSTGRESQL: ${{ vars.USE_POSTGRESQL }}
+
         run: |
           # Deploy commands
           ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << EOF
@@ -76,8 +92,19 @@ jobs:
             docker run -d \
               --name $CONTAINER \
               --restart unless-stopped \
-              -p $PORT:41002 \
-              -e DEBUG=false \
+              -p $PORT:$SERVICE_PORT \
+              -e ENV=$ENV \
+              -e DEBUG=$DEBUG \
+              -e SERVICE_PORT=$SERVICE_PORT \
+              -e INTERNAL_JWT_SECRET=$INTERNAL_JWT_SECRET \
+              -e PAYOS_CHECKSUM_KEY=$PAYOS_CHECKSUM_KEY \
+              -e INTERNAL_SERVICE_KEY=$INTERNAL_SERVICE_KEY \
+              -e DATABASES_NAME=$DATABASES_NAME \
+              -e DATABASES_USER=$DATABASES_USER \
+              -e DATABASES_PASSWORD=$DATABASES_PASSWORD \
+              -e DATABASES_HOST=$DATABASES_HOST \
+              -e DATABASES_PORT=$DATABASES_PORT \
+              -e USE_POSTGRESQL=$USE_POSTGRESQL \
               --log-opt max-size=10m \
               --log-opt max-file=3 \
               ghcr.io/${{ env.IMAGE_NAME }}:${{ github.ref_name }}

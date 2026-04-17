@@ -14,21 +14,12 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 load_dotenv()
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-zyx)3ubk5-euhk-aa_t@5bm+ky4)vj-9kn)ejm1$^4s$c+*8e!'
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+HOST = os.getenv('HOST')
+ALLOWED_HOSTS = [HOST] if HOST else ['*']
 
 
 # Application definition
@@ -40,6 +31,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Third-party
+    'rest_framework',
+
+    # Local apps
+    'billing',
 ]
 
 MIDDLEWARE = [
@@ -76,13 +73,28 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if os.getenv('USE_POSTGRESQL', 'false').lower() == 'true':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DATABASES_NAME'),
+            'USER': os.getenv('DATABASES_USER'),
+            'PASSWORD': os.getenv('DATABASES_PASSWORD'),
+            'HOST': os.getenv('DATABASES_HOST'),
+            'PORT': os.getenv('DATABASES_PORT'),
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
+        }
     }
-}
-
+else:
+    # Use SQLite for local development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -124,3 +136,31 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# =============================================================================
+# Django REST Framework Configuration
+# =============================================================================
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    # Không set DEFAULT_AUTHENTICATION_CLASSES global
+    # Mỗi view tự chỉ định authentication_classes phù hợp
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+}
+
+
+# =============================================================================
+# Billing & Payment - Custom Settings
+# =============================================================================
+# Secret key để verify Internal JWT từ Gateway (NestJS)
+INTERNAL_JWT_SECRET = os.getenv('INTERNAL_JWT_SECRET', 'change-me-in-production')
+
+# Checksum key của PayOS để verify webhook signature
+PAYOS_CHECKSUM_KEY = os.getenv('PAYOS_CHECKSUM_KEY', 'change-me-in-production')
+
+# API key cho internal service-to-service communication
+INTERNAL_SERVICE_KEY = os.getenv('INTERNAL_SERVICE_KEY', 'change-me-in-production')
