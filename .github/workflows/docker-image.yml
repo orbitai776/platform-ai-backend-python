@@ -73,6 +73,8 @@ jobs:
           DATABASES_PASSWORD: ${{ secrets.DATABASES_PASSWORD }}
           DATABASES_HOST: ${{ secrets.DATABASES_HOST }}
           DATABASES_PORT: ${{ secrets.DATABASES_PORT }}
+          USE_POSTGRESQL: ${{ vars.USE_POSTGRESQL }}
+
         run: |
           # Deploy commands
           ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << EOF
@@ -90,7 +92,7 @@ jobs:
             docker run -d \
               --name $CONTAINER \
               --restart unless-stopped \
-              -p $PORT:41002 \
+              -p $PORT:$SERVICE_PORT \
               -e ENV=$ENV \
               -e DEBUG=$DEBUG \
               -e SERVICE_PORT=$SERVICE_PORT \
@@ -102,7 +104,7 @@ jobs:
               -e DATABASES_PASSWORD=$DATABASES_PASSWORD \
               -e DATABASES_HOST=$DATABASES_HOST \
               -e DATABASES_PORT=$DATABASES_PORT \
-              -e USE_POSTGRESQL=true \
+              -e USE_POSTGRESQL=$USE_POSTGRESQL \
               --log-opt max-size=10m \
               --log-opt max-file=3 \
               ghcr.io/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
